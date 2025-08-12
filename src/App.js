@@ -35,7 +35,7 @@ export default function ChatPage() {
     setLoading(true)
 
     try {
-      const res = await axios.post("http://localhost:4000/gemini", { prompt })
+      const res = await axios.post("https://gemiai.onrender.com/gemini", { prompt })
 
       const assistantMessage = {
         id: (Date.now() + 1).toString(),
