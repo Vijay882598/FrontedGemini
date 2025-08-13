@@ -3,12 +3,15 @@
 import { useState, useRef, useEffect } from "react"
 import { Send, Bot, User, Loader2 } from "lucide-react"
 import axios from "axios"
-import "./App.css" // Import CSS
+import "./App.css"
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import "./markdown.css";
 
 export default function ChatPage() {
-  const [messages, setMessages] = useState([])
-  const [prompt, setPrompt] = useState("")
-  const [loading, setLoading] = useState(false)
+  const [messages, setMessages] = useState([]);
+  const [prompt, setPrompt] = useState("");
+  const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef(null)
 
   const scrollToBottom = () => {
@@ -19,45 +22,49 @@ export default function ChatPage() {
     scrollToBottom()
   }, [messages])
 
+
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    if (!prompt.trim() || loading) return
+    e.preventDefault();
+    if (!prompt.trim() || loading) return;
 
     const userMessage = {
       id: Date.now().toString(),
       content: prompt,
       role: "user",
       timestamp: new Date(),
-    }
+    };
 
-    setMessages((prev) => [...prev, userMessage])
-    setPrompt("")
-    setLoading(true)
+    setMessages((prev) => [...prev, userMessage]);
+    setPrompt("");
+    setLoading(true);
 
     try {
-      const res = await axios.post("https://gemiai.onrender.com/gemini", { prompt })
+      const res = await axios.post("https://gemiai.onrender.com/gemini", { prompt });
 
       const assistantMessage = {
         id: (Date.now() + 1).toString(),
         content: res.data.output,
         role: "assistant",
         timestamp: new Date(),
-      }
+      };
 
-      setMessages((prev) => [...prev, assistantMessage])
+      setMessages((prev) => [...prev, assistantMessage]);
     } catch (error) {
-      console.error(error)
+      console.error(error);
       const errorMessage = {
         id: (Date.now() + 1).toString(),
-        content: "Sorry, I encountered an error while processing your request. Please try again.",
+        content:
+          "Sorry, I encountered an error while processing your request. Please try again.",
         role: "assistant",
         timestamp: new Date(),
-      }
-      setMessages((prev) => [...prev, errorMessage])
+      };
+      setMessages((prev) => [...prev, errorMessage]);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
+
+
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -75,7 +82,6 @@ export default function ChatPage() {
           <h1 className="chat-title">Gemini AI Chat</h1>
         </div>
       </div>
-
       {/* Messages */}
       <div className="chat-messages">
         {messages.length === 0 ? (
@@ -95,9 +101,28 @@ export default function ChatPage() {
                   <Bot className="icon avatar-icon" />
                 </div>
               )}
-              <div className={`message-card ${message.role}`}>
-                {message.content}
+
+              <div
+                className={`message-card ${message.role}`}
+                style={{
+                  background: message.role === "assistant" ? "#f1f3f4" : "#0078ff",
+                  color: message.role === "assistant" ? "#000" : "#fff",
+                  borderRadius: "8px",
+                  padding: "12px",
+                  maxWidth: "80%",
+                }}
+              >
+                {message.role === "assistant" ? (
+                  <div className="assistant-msg">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                      {message.content}
+                    </ReactMarkdown>
+                  </div>
+                ) : (
+                  message.content
+                )}
               </div>
+
               {message.role === "user" && (
                 <div className="avatar user-avatar">
                   <User className="icon avatar-icon" />
@@ -112,7 +137,16 @@ export default function ChatPage() {
             <div className="avatar bot-avatar">
               <Bot className="icon avatar-icon" />
             </div>
-            <div className="message-card assistant">
+            <div
+              className="message-card assistant"
+              style={{
+                background: "#f1f3f4",
+                color: "#000",
+                borderRadius: "8px",
+                padding: "12px",
+                maxWidth: "80%",
+              }}
+            >
               <Loader2 className="icon loading-icon" />
               Thinking...
             </div>
@@ -120,6 +154,7 @@ export default function ChatPage() {
         )}
         <div ref={messagesEndRef} />
       </div>
+
 
       {/* Input */}
       <div className="chat-input-area">
@@ -143,5 +178,6 @@ export default function ChatPage() {
         <p className="input-hint">Press Enter to send, Shift + Enter for new line</p>
       </div>
     </div>
+
   )
 }
